@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DAY 04</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #a18cd1, #fbc2eb);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    h1 {
+      color: white;
+      margin-bottom: 10px;
+    }
+    #board {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      gap: 5px;
+    }
+    .cell {
+      width: 60px;
+      height: 60px;
+      background: #ffffff33;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #6a0dad;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .cell:hover { transform: scale(1.05); }
+    .revealed { background: #ffffffaa; cursor: default; }
+    #giftNote {
+      display: none;
+      margin-top: 20px;
+      font-size: 22px;
+      color: white;
+      text-align: center;
+      animation: glow 2s infinite alternate;
+      text-shadow: 0 0 10px #fff, 0 0 20px #ba68c8, 0 0 30px #ba68c8;
+    }
+    @keyframes glow {
+      from { text-shadow: 0 0 10px #fff, 0 0 20px #ba68c8; }
+      to { text-shadow: 0 0 20px #fff, 0 0 40px #ba68c8; }
+    }
+    #helpBtn {
+      display: none;
+      margin-top: 15px;
+      padding: 10px 18px;
+      background: #ba68c8;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #helpBtn.glow { animation: buttonGlow 1s infinite alternate; }
+    @keyframes buttonGlow {
+      from { box-shadow: 0 0 5px #fff, 0 0 10px #ba68c8; }
+      to { box-shadow: 0 0 20px #fff, 0 0 30px #ba68c8; }
+    }
+    #attempts { margin-top: 10px; color: white; font-size: 18px; }
+    #overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(255,0,0,0.8);
+      color: white;
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      display: none;
+      animation: fade 1s;
+    }
+    @keyframes fade { from {opacity: 0;} to {opacity: 1;} }
+  </style>
+</head>
+<body>
+  <h1>28 DAYS TO GO</h1>
+  <div id="board"></div>
+  <div id="giftNote">I'm so proud of you<br><br> You are my everything<br>Always remember how special you are to me!<br>Thank you so much for today 🥺 even though you were not feeling your best yourself, <br>you still chose to be there for me, looking after me the whole day, making things <br>easier for me, and even coming all the way from your office just to see me. It truly means the world to me,<br> and I can’t tell you how much I value your care and love. You always put me first, and I feel so lucky to have you.</div>
+  <button id="helpBtn">आप चाहो तो यहाँ click करके आगे बढ़ सकती, किसी को पता नहीं चलेगा</button>
+  <div id="attempts">Attempts: 0</div>
+  <div id="overlay">IK YOU CAN SOLVE IT 💪</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script>
+    const board = document.getElementById('board');
+    const giftNote = document.getElementById('giftNote');
+    const helpBtn = document.getElementById('helpBtn');
+    const attemptsDiv = document.getElementById('attempts');
+    const overlay = document.getElementById('overlay');
+    const emojis = ['💜','🌸','✨','🌿'];
+
+    let size = 5;
+    let mines = [];
+    let revealedCount = 0;
+    let attempts = 0;
+
+    function init() {
+      board.innerHTML = '';
+      giftNote.style.display = 'none';
+      revealedCount = 0;
+      mines = [];
+
+      // Place mines only at edges
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          if (r === 0 || c === 0 || r === size-1 || c === size-1) {
+            if (Math.random() < 0.25) mines.push(r + '-' + c);
+          }
+        }
+      }
+
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          let cell = document.createElement('div');
+          cell.classList.add('cell');
+          cell.id = r + '-' + c;
+          cell.addEventListener('click', () => reveal(r,c));
+          board.appendChild(cell);
+        }
+      }
+    }
+
+    function reveal(r,c){
+      let cell = document.getElementById(r+'-'+c);
+      if (cell.classList.contains('revealed')) return;
+
+      if (mines.includes(r+'-'+c)) {
+        cell.textContent = '💣';
+        fail();
+        return;
+      }
+
+      cell.classList.add('revealed');
+      let count = countMines(r,c);
+      if (count === 0) {
+        cell.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      } else {
+        cell.textContent = count;
+        cell.style.color = '#6a0dad';
+      }
+
+      revealedCount++;
+      if (revealedCount >= (size*size - mines.length)) win();
+    }
+
+    function countMines(r,c){
+      let dirs = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]];
+      let count = 0;
+      for (let [dr,dc] of dirs){
+        if (mines.includes((r+dr)+'-'+(c+dc))) count++;
+      }
+      return count;
+    }
+
+    function fail(){
+      attempts++;
+      attemptsDiv.textContent = 'Attempts: ' + attempts;
+      if (attempts >= 3) helpBtn.style.display = 'inline-block', helpBtn.classList.add('glow');
+      overlay.style.display = 'flex';
+      setTimeout(()=>{
+        overlay.style.display = 'none';
+        init();
+      },1500);
+    }
+
+    function win(){
+      giftNote.style.display = 'block';
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    }
+
+    helpBtn.addEventListener('click', ()=>{
+      document.querySelectorAll('.cell').forEach(c=>{
+        if (!mines.includes(c.id)) c.click();
+      });
+    });
+
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The clock's ticking, Ishu</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #a18cd1, #fbc2eb);
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      text-align: center;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    h1 {
+      font-size: 2rem;
+      margin: 0 0 15px;
+    }
+    p {
+      font-size: 1rem;
+      max-width: 90vw;
+      margin: 0 0 20px;
+      line-height: 1.5;
+    }
+    button {
+      background: #fff;
+      color: #a18cd1;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: 25px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: all 0.3s ease;
+      max-width: 90vw;
+    }
+    button:hover {
+      background: #a18cd1;
+      color: #fff;
+    }
+    #countdown {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 20px;
+      background: rgba(0,0,0,0.2);
+      padding: 8px 15px;
+      border-radius: 12px;
+      display: inline-block;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+  <h1>✨ The clock's ticking, Ishu ✨</h1>
+  <p>Laado, this is just the beginning... a little webpage made with love 💜<br>
+  More surprises are waiting for you<br>This is your 4th-day gift. I know you’re extremely tired, but I still wanted to make something that satisfies the kid inside you, <br>the one who loves to play games.So go ahead, play, smile, and bring back a little piece of that childlike joy — <br>I’ll always be here, and every smile of yours is priceless to me. Love you ✨</p>
+
+  <button onclick="nextGift()">Open Your Next Gift 🎉</button>
+
+  <!-- Countdown -->
+  <h2>⏳ Countdown to Your Birthday 💜</h2>
+  <div id="countdown"></div>
+
+  <!-- Confetti Canvas -->
+  <canvas id="confetti"></canvas>
+
+  <!-- Background Music -->
+  <audio autoplay loop>
+    <source src="https://cdn.pixabay.com/download/audio/2023/01/03/audio_4c8a556df9.mp3?filename=romantic-background-music-13284.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    // Redirect to scratch card
+    function nextGift() {
+      window.location.href = "./mines.html";
+    }
+
+    // Countdown Script (to 26 Sept 2025)
+    const targetDate = new Date("Sep 26, 2025 00:00:00").getTime();
+    const timer = setInterval(function() {
+      const now = new Date().getTime();
+      const distance = targetDate - now;
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      document.getElementById("countdown").innerHTML =
+        days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
+
+      if (distance < 0) {
+        clearInterval(timer);
+        document.getElementById("countdown").innerHTML =
+          "🎉 It’s Your Birthday, Ishita! 💜🎂";
+      }
+    }, 1000);
+
+    // Confetti Animation
+    const canvas = document.getElementById('confetti');
+    const ctx = canvas.getContext('2d');
+    let W = window.innerWidth;
+    let H = window.innerHeight;
+    canvas.width = W;
+    canvas.height = H;
+
+    const confettiCount = 150;
+    const confetti = [];
+
+    for (let i = 0; i < confettiCount; i++) {
+      confetti.push({
+        x: Math.random() * W,
+        y: Math.random() * H - H,
+        r: Math.random() * 6 + 4,
+        d: Math.random() * confettiCount,
+        color: `hsl(${Math.random() * 360}, 100%, 70%)`,
+        tilt: Math.random() * 10 - 10
+      });
+    }
+
+    function drawConfetti() {
+      ctx.clearRect(0, 0, W, H);
+      for (let i = 0; i < confettiCount; i++) {
+        let c = confetti[i];
+        ctx.beginPath();
+        ctx.fillStyle = c.color;
+        ctx.ellipse(c.x, c.y, c.r, c.r/2, c.tilt, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      updateConfetti();
+    }
+
+    function updateConfetti() {
+      for (let i = 0; i < confettiCount; i++) {
+        let c = confetti[i];
+        c.y += Math.cos(c.d) + 1 + c.r / 2;
+        c.x += Math.sin(c.d);
+        if (c.y > H) {
+          confetti[i] = {x: Math.random() * W, y: -10, r: c.r, d: c.d, color: c.color, tilt: c.tilt};
+        }
+      }
+    }
+
+    setInterval(drawConfetti, 20);
+
+    window.addEventListener("resize", () => {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W;
+      canvas.height = H;
+    });
+  </script>
+</body>
+</html>
